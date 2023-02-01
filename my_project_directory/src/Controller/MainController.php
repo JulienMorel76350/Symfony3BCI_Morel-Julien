@@ -13,6 +13,11 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class MainController extends AbstractController
 {
+    #[Route('/', name: 'Acceuil')]
+    public function Acceuil(): Response
+    {
+        return new Response('20 STP');
+    }
     #[Route('/main', name: 'app_main')]
     public function index(): Response
     {
@@ -24,20 +29,27 @@ class MainController extends AbstractController
     public function create(ManagerRegistry $doctrine): Response
     {
         $entityManager = $doctrine->getManager();
+        try {
 
-        $product = new Cinema();
+            $product = new Cinema();
 
-        $product->setNom('Avatar 2');
-        $product->setSynopsis('Tout bleu');
-        $product->setType('Film');
-        $dateObject = new DateTime();
+            $product->setNom('Avatar 2');
+            $product->setSynopsis('Tout bleu');
+            $product->setType('');
+            $dateObject = new DateTime();
 
-        $product->setCreatedAt($dateObject);
-        $entityManager->persist($product);
+            $product->setCreatedAt($dateObject);
+            $entityManager->persist($product);
 
-        $entityManager->flush();
+            $entityManager->flush();
+        } catch (\Exception $ex) {
+            return new JsonResponse(["error" => true], 500);
+        }
 
-        return new Response('Saved new product');
+        return new JsonResponse(array(
+            'Httpcode' => '200',
+            'message' => 'Insertion réusite'
+        ));
     }
     #[Route('/getall', name: 'Tout récuperer')]
     public function getall(ManagerRegistry $doctrine): Response
@@ -61,6 +73,12 @@ class MainController extends AbstractController
     {
         $repository = $doctrine->getRepository(Cinema::class);
         $products = $repository->findOneById($param);
+        if (!$products) {
+            return new JsonResponse(array(
+                'Httpcode' => '204'
+            ));
+        } else {
+        }
         $cinema = array();
         $cinema[] = array(
             'id' => $products->getId(),
@@ -71,6 +89,9 @@ class MainController extends AbstractController
         );
 
 
-        return new JsonResponse($cinema);
+        return new JsonResponse(array(
+            'Httpcode' => '200',
+            'Content' => $cinema,
+        ));
     }
 }
